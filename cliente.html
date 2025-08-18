@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carteira • Cartão AproveitAI</title>
+  <style>
+    :root {
+      --verde:#0a7f2e; --verde-esc:#085e22; --azul:#3e6bee;
+      --ink:#232630; --card:#ffffff; --bg1:#bdeeff; --bg2:#81d4fa;
+    }
+    * { box-sizing: border-box }
+    body {
+      margin: 0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: linear-gradient(135deg,var(--bg1),var(--bg2));
+      color: var(--ink);
+    }
+    .brandline {
+      display: grid;
+      grid-template-columns:140px 1fr 140px;
+      gap: 12px;
+      align-items: center;
+      justify-items: center;
+      margin: 18px auto 0;
+      max-width: 600px;
+    }
+    .brandline img {
+      height: 100px;
+      object-fit: contain;
+    }
+    .pill {
+      background: #e9fff1;
+      border: 1px solid #b7efc2;
+      color: #0a4c1a;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-weight: 900;
+      font-size: 1.6rem;
+      text-align: center;
+    }
+    .title {
+      text-align: center;
+      font-weight: 900;
+      color: #0a4c1a;
+      font-size: 1.8rem;
+      margin: 12px 0 20px;
+    }
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 6px 22px #0001;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+      color: var(--verde);
+    }
+    .qr {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .status {
+      font-weight: bold;
+    }
+    .benef {
+      background: #f4f9ff;
+      border: 1px solid #e6eefc;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="brandline">
+    <img src="logo-prometheus.png" alt="Prometheus">
+    <div class="pill">Cartão AproveitAI</div>
+    <img src="logo-aproveitai.png" alt="AproveitAI">
+  </div>
+
+  <div class="title">Área do Cliente • Validação</div>
+
+  <div class="wrap">
+    <!-- Formulário -->
+    <div id="formulario" class="card" style="display:none">
+      <h1>Consultar sua Carteira</h1>
+      <p>Digite seu CPF ou ID Público para acessar:</p>
+      <input id="inputId" type="text" placeholder="Ex: 00000000000 ou APV-XXXXX" style="width:100%; padding:10px; font-size:1rem; margin-bottom:10px" />
+      <button onclick="abrirCarteira()" style="padding:10px 16px; font-weight:bold; background:var(--verde); color:white; border:none; border-radius:8px; font-size:1rem">Acessar</button>
+    </div>
+
+    <!-- Dados do cliente -->
+    <div class="card" id="box" style="display:none">
+      <h1>Carteira do Cliente</h1>
+      <p>Apresente este QR no parceiro ou informe seu CPF.</p>
+      <div id="info"></div>
+      <div class="qr"><img id="qr" alt="QR Code" /></div>
+
+      <div style="display:flex; gap:10px; justify-content:center; margin:16px 0">
+        <a id="btnZap" target="_blank" class="cta" style="background:#25D366; color:white; padding:10px 16px; border-radius:8px; font-weight:bold; text-align:center;">Enviar por WhatsApp</a>
+        <button onclick="location.reload()" class="cta" style="background:var(--verde); color:white; padding:10px 16px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Atualizar</button>
+      </div>
+
+      <h2 style="font-size:1.2rem;margin:10px 0 6px">Benefícios vigentes</h2>
+      <div id="beneficios"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://script.google.com/macros/s/AKfycbyHvvQa508n9zm4CxYT12ykI7SyELA4KFB-hHt-SpFaTPTFOBbPh39EV7FyvXULPcao/exec";
+
+    const qs = new URLSearchParams(location.search);
+    const cpf = qs.get("cpf")?.replace(/\D/g, "") || "";
+    const id = qs.get("idPublico") || "";
+    const hoje = new Date();
+
+    const norm = v => (v || '').toString().trim();
+    const isYes = v => /^(sim|s|yes|y|ativo|1)$/i.test(norm(v));
+    const parseDate = (s) => {
+      if (!s) return null;
+      const [d, m, y] = (s.includes('/') ? s.split('/') : s.split('-')).map(x => parseInt(x));
+      return isNaN(y) ? null : new Date(y, m - 1, d);
+    };
+
+    function abrirCarteira() {
+      const valor = document.getElementById("inputId").value.trim();
+      if (!valor) {
+        alert("Digite um CPF ou ID Público");
+        return;
+      }
+      if (/^\d{11}$/.test(valor)) {
+        window.location.href = "cliente.html?cpf=" + valor;
+      } else {
+        window.location.href = "cliente.html?idPublico=" + encodeURIComponent(valor);
+      }
+    }
+
+    async function carregar() {
+      if (!cpf && !id) {
+        document.getElementById("formulario").style.display = "block";
+        return;
+      }
+
+      document.getElementById("box").style.display = "block";
+
+      const p = cpf ? { cpf } : { idPublico: id };
+
+      try {
+        const resCli = await fetch(API + "?action=cliente&" + new URLSearchParams(p));
+        const cli = await resCli.json();
+
+        const nome = norm(cli.nome);
+        const idPub = norm(cli.idPublico || id || '');
+        const ativo = isYes(cli.ativo);
+
+        // QR CODE
+       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(`${API}?id=${idPub}`)}`;
+        console.log("QR URL:", qrUrl);
+        document.getElementById("qr").src = qrUrl;
+
+
+        // WhatsApp
+        const msgZap = `🪪 Cartão AproveitAI\n\nNome: ${nome}\nID Público: ${idPub}\nStatus: ${ativo ? "ATIVO ✅" : "INATIVO ⛔"}\n\nAcesse: ${location.href}`;
+        document.getElementById("btnZap").href = "https://wa.me/?text=" + encodeURIComponent(msgZap);
+
+        // Informações
+        document.getElementById("info").innerHTML = `
+          <div><b>Nome:</b> ${nome}</div>
+          <div><b>ID público:</b> ${idPub}</div>
+          <div><b>Status:</b> <span class="status">${ativo ? "✅ ATIVO" : "⛔ INATIVO"}</span></div>
+        `;
+
+        fetch(API + "?action=logConsulta&" + new URLSearchParams(p)).catch(() => {});
+
+        const cpfLimpo = norm(cli.cpf || cpf || '');
+        const [byId, byCpf, promocoes] = await Promise.all([
+          fetch(API + "?action=beneficioscliente&idPublico=" + idPub).then(r => r.json()),
+          fetch(API + "?action=beneficioscliente&cpf=" + cpfLimpo).then(r => r.json()),
+          fetch(API + "?action=promocoes").then(r => r.json())
+        ]);
+
+        const todos = [...byId, ...byCpf, ...promocoes];
+        const bensValidos = todos.filter(b => {
+          const fim = parseDate(b.dataFim);
+          return isYes(b.ativo) && (!fim || fim >= hoje);
+        });
+
+        const html = bensValidos.length
+          ? bensValidos.map(b => `
+            <div class="benef">
+              <b>${norm(b.titulo) || '-'}</b>
+              <div>${norm(b.descricao) || ''}</div>
+              <div><small><b>Parceiro:</b> ${norm(b.nomeParceiro || b.parceiro || '-')}</small></div>
+            </div>`).join('')
+          : "<div class='benef'>Nenhum benefício vigente.</div>";
+
+        document.getElementById("beneficios").innerHTML = html;
+
+      } catch (err) {
+        document.getElementById("box").innerHTML = `<h1>Erro</h1><p>Falha ao carregar dados do cliente.</p>`;
+        console.error("Erro carregando cliente ou benefícios:", err);
+      }
+    }
+
+    window.addEventListener("load", carregar);
+  </script>
+</body>
+</html>

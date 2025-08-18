@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Área do Parceiro • Cartão AproveitAI</title>
+  <style>
+    :root{ --verde:#0a7f2e; --verde-esc:#085e22; --azul:#3e6bee; --ink:#232630; --card:#ffffff; --bg1:#bdeeff; --bg2:#81d4fa; }
+    *{ box-sizing:border-box }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+          background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--ink); }
+    .wrap{ max-width:520px; margin:28px auto; padding:16px; }
+    .brandline{ display:grid; grid-template-columns:140px 1fr 140px; gap:12px; align-items:center; justify-items:center; }
+    .brandline img{ height:100px; object-fit:contain; }
+    .title{ text-align:center; font-weight:900; color:#0a4c1a; font-size:1.8rem; margin:6px 0 14px; }
+    .card{ background:var(--card); border-radius:14px; box-shadow:0 6px 22px #0001; padding:18px; }
+    h2{ margin:0 0 12px; color:var(--azul); font-size:1.25rem; }
+    label{ font-weight:700; font-size:.95rem; display:block; margin:.4rem 0; }
+    .row{ display:flex; gap:10px; }
+    input,button,select{ width:100%; padding:12px; border-radius:10px; border:1px solid #e5e7eb; font-size:1rem; }
+    input:focus{ outline:none; border-color:#b9ccff; box-shadow:0 0 0 3px #b9ccff55; }
+    .hint{ font-size:.85rem; opacity:.8; margin-top:4px; }
+    .muted{ font-size:.85rem; opacity:.7; }
+    .actions{ display:flex; gap:10px; margin-top:14px; }
+    .btn{ background:var(--verde); color:#fff; font-weight:800; border:none; cursor:pointer; }
+    .btn:hover{ background:var(--verde-esc); }
+    .btn.outline{ background:#fff; color:var(--verde); border:2px solid var(--verde); }
+    .split{ display:grid; gap:8px; }
+    .sep{ height:1px; background:#e8e8e8; margin:12px 0; }
+    .footer{ text-align:center; font-size:.85rem; margin-top:14px; opacity:.8; }
+    .pill{ display:inline-block; background:#e9fff1; border:1px solid #b7efc2; color:#0a4c1a; border-radius:999px; padding:6px 10px; font-weight:800; margin:8px auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brandline">
+      <img src="logo-prometheus.png" alt="Prometheus">
+      <div class="pill">Cartão AproveitAI</div>
+      <img src="logo-aproveitai.png" alt="AproveitAI">
+    </div>
+    <div class="title">Área do Parceiro • Validação</div>
+
+    <div class="card">
+      <h2>Validar Cliente</h2>
+
+      <div class="split">
+        <label for="uid">ID público (QR)</label>
+        <input id="uid" placeholder="Ex.: APV‑NS5ZF8‑ME..." autocomplete="off" />
+        <div class="hint">Se preencher o ID público, o CPF abaixo é ignorado.</div>
+
+        <div class="sep"></div>
+
+        <label for="cpf">CPF do cliente</label>
+        <input id="cpf" inputmode="numeric" placeholder="000.000.000‑00" autocomplete="off" />
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="partner">Partner code OU CNPJ</label>
+            <input id="partner" placeholder="ero2340 ou 12.345.678/0001‑90" autocomplete="off" />
+          </div>
+          <div style="flex:1">
+            <label for="token">Token (senha)</label>
+            <input id="token" placeholder="****" autocomplete="off" />
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnGo" class="btn">Validar</button>
+        <button id="btnCopy" class="btn outline" type="button">Copiar link</button>
+      </div>
+
+      <div id="msg" class="hint" style="min-height:22px; margin-top:8px;"></div>
+      <div class="footer muted">Dica: salve este atalho na tela inicial do celular do caixa.</div>
+    </div>
+  </div>
+
+<script>
+  // Pega a API da querystring ou usa padrão
+  const qs  = new URLSearchParams(location.search);
+  const API = qs.get('api') || "https://script.google.com/macros/s/AKfycbyHvvQa508n9zm4CxYT12ykI7SyELA4KFB-hHt-SpFaTPTFOBbPh39EV7FyvXULPcao/exec";
+
+  const $ = (id)=>document.getElementById(id);
+  const onlyDigits = (v)=>String(v||'').replace(/\D/g,'');
+
+  function maskCPF(v){
+    const s = onlyDigits(v).slice(0,11);
+    return s.replace(/(\d{3})(\d)/,'$1.$2')
+            .replace(/(\d{3})(\d)/,'$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  }
+  function maskCNPJorCode(v){
+    const s = onlyDigits(v);
+    if(s.length<=11) return v; // provavelmente code
+    return s.slice(0,14)
+      .replace(/^(\d{2})(\d)/,'$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/,'.$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/,'$1-$2');
+  }
+
+  $('cpf').addEventListener('input', e=> e.target.value = maskCPF(e.target.value));
+  $('partner').addEventListener('input', e=> e.target.value = maskCNPJorCode(e.target.value));
+
+  $('uid').addEventListener('input', e=>{
+    const has = e.target.value.trim().length>0;
+    $('cpf').disabled = has;
+    $('cpf').style.opacity = has ? .6 : 1;
+  });
+
+  // Prefill (?partner=...&token=...)
+  if(qs.get('partner')) $('partner').value = qs.get('partner');
+  if(qs.get('token'))   $('token').value   = qs.get('token');
+
+  // Últimos usados
+  const last = JSON.parse(localStorage.getItem('aproveitai.partner') || '{}');
+  if(!$('partner').value && last.partner) $('partner').value = last.partner;
+  if(!$('token').value   && last.token)   $('token').value   = last.token;
+
+  function buildURL(){
+    const uid     = $('uid').value.trim();
+    const cpf     = onlyDigits($('cpf').value);
+    const partner = $('partner').value.trim();
+    const token   = $('token').value.trim();
+
+    if(!partner || !token){
+      $('msg').textContent = 'Informe o partner code/CNPJ e o token.';
+      return null;
+    }
+    localStorage.setItem('aproveitai.partner', JSON.stringify({partner, token}));
+
+    const q = new URLSearchParams();
+    if(uid){
+      q.set('idPublico', uid);   // nome aceito pelo doGet
+    }else if(cpf){
+      q.set('cpf', cpf);
+    }else{
+      $('msg').textContent = 'Informe o CPF do cliente ou o ID público.';
+      return null;
+    }
+    q.set('partner', partner);
+    q.set('token', token);
+    return `${API}?${q.toString()}`;
+  }
+
+  $('btnGo').addEventListener('click', ()=>{
+    const url = buildURL();
+    if(!url) return;
+    $('btnGo').disabled = true; $('btnGo').textContent = 'Validando…'; $('msg').textContent = '';
+    location.href = url;
+    setTimeout(()=>{ $('btnGo').disabled=false; $('btnGo').textContent='Validar'; }, 800);
+  });
+
+  $('btnCopy').addEventListener('click', async ()=>{
+    const url = buildURL();
+    if(!url) return;
+    await navigator.clipboard.writeText(url);
+    $('msg').textContent = 'Link copiado! Cole no navegador do caixa ou envie ao atendente.';
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); $('btnGo').click(); }
+  });
+</script>
+</body>
+</html>

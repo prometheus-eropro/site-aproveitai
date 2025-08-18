@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cartão AproveitAI • PROMETHEUS EROPRO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --verde:#0a7f2e; --verde-esc:#085e22; --azul:#3e6bee;
+      --bg1:#bdeeff; --bg2:#81d4fa; --card:#fafbfc; --ink:#232630;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ink)}
+    a{color:inherit;text-decoration:none}
+
+    /* HEADER */
+    .header-wrap{padding:22px 12px}
+    .brandline{
+      max-width:1100px;margin:0 auto 8px;
+      display:grid;grid-template-columns:200px 1fr 200px;gap:16px;align-items:center}
+    .brandline img{height:180px;object-fit:contain}
+    .titulo-marca{
+      justify-self:center;font-size:3rem;font-weight:900;color:#0a4c1a;
+      background:#e9fff1;border:1px solid #b7efc2;border-radius:999px;padding:10px 28px
+    }
+    .titulo-marca span{color:#0a7f2e}
+    .hero-title{font-size:2.1rem;font-weight:900;color:#0a4c1a;text-align:center;margin:8px 0 12px}
+    .welcome{
+      max-width:900px;margin:0 auto;background:#ffffffcc;border-radius:18px;box-shadow:0 2px 10px #0002;
+      padding:18px 20px;text-align:center;font-size:1.18rem;line-height:1.55
+    }
+    .welcome b{font-size:1.22rem}
+    .cta-row{display:flex;gap:12px;justify-content:center;margin:16px 0 8px;flex-wrap:wrap}
+    .cta{background:var(--verde);color:#fff;padding:12px 18px;border-radius:12px;font-weight:800}
+    .cta:hover{background:var(--verde-esc)}
+    #promo-topo>div{
+      background:#fff8e1;border:1px solid #ffe08a;color:#6b4f00;border-radius:14px;padding:10px 14px;
+      margin:10px auto 0;max-width:900px
+    }
+
+    /* BLOCOS/SEÇÕES */
+    .intro{margin:18px auto 10px;max-width:920px;background:#ffffffb8;border-radius:12px;box-shadow:0 4px 18px #0001;padding:18px;text-align:center}
+    .sec-titulo{font-size:1.6rem;text-align:center;margin:28px 0 12px;color:var(--azul)}
+    .bloco{background:#fff;border-radius:12px;box-shadow:0 1px 10px #0002;padding:14px 16px;margin:10px auto;max-width:920px}
+
+    /* PARCEIROS */
+    #cards-parceiros{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:12px auto 26px;max-width:1200px}
+    #cards-parceiros .card{width:320px;background:var(--card);border-radius:14px;box-shadow:0 2px 12px #0003;padding:16px;text-align:center}
+    #cards-parceiros .card h2{margin:8px 0 4px;color:var(--azul);font-size:1.22rem}
+    #cards-parceiros .card .resumo{font-size:.95rem;opacity:.85}
+    #cards-parceiros .card a{display:inline-block;margin-top:10px;background:#3ee770;color:#232630;font-weight:800;border-radius:10px;padding:.6em 1.1em}
+    #cards-parceiros .card a:hover{background:#f7703e;color:#fff}
+
+    /* ESCONDER PÁGINAS LONGAS por padrão */
+    #promocoes, #beneficios, #depoimentos, #faq { display:none; }
+
+    /* RODAPÉ MENOR E LEGÍVEL */
+    footer{background:#232323;color:#eaeaea;text-align:center;padding:18px 10px 16px;margin-top:26px}
+    footer .claim{display:block;font-size:1.2rem;font-weight:800;margin-bottom:8px}
+    .footer-buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:10px 0}
+    .footer-buttons button{padding:.55em 1.1em;border:none;border-radius:12px;font-weight:800;cursor:pointer}
+    .footer-buttons button:hover{transform:scale(1.05)}
+    footer .mini{opacity:.9;font-size:.9rem}
+    footer .mini a{color:#3ee770;text-decoration:underline}
+
+    /* Cartões dentro do rodapé (FAQ/Depo) em fundo branco */
+    footer .bloco, footer details{background:#fff;border-radius:12px;box-shadow:0 2px 10px #0002;color:#232630}
+    footer details{padding:12px;margin:10px auto;max-width:920px}
+    footer details>summary{cursor:pointer;font-weight:800}
+  </style>
+</head>
+<body>
+
+  <header class="header-wrap">
+    <div class="brandline">
+      <img src="logo-prometheus.png" alt="Prometheus">
+      <div class="titulo-marca">Cartão <span>AproveitAI</span></div>
+      <img src="logo-aproveitai.png" alt="AproveitAI">
+    </div>
+
+    <h1 class="hero-title">Tecnologia com ConsciêncIA gera Resultado.</h1>
+
+    <div class="welcome">
+      <b>Bem-vindo à PROMETHEUS EROPRO Soluções Inteligentes!</b><br/>
+      Assine e experimente o <b>Cartão <span style="color:#0a7f2e">AproveitAI</span></b> e comece a economizar de verdade.
+    </div>
+
+    <div class="cta-row">
+  <a class="cta" target="_blank"
+     href="https://api.whatsapp.com/send?phone=5528999692303&text=Quero%20assinar%20o%20Cart%C3%A3o%20AproveitAI">Assinar no WhatsApp</a>
+
+  <a id="linkParceiro" class="cta" href="#">Área do Parceiro</a>
+
+  <a class="cta" href="cliente.html">Área do Cliente</a>
+</div>
+
+    <!-- destaque de promoções (1 linha) -->
+    <div id="promo-topo"></div>
+  </header>
+
+  <!-- AVISO/CHAMADA (deixa para recados rápidos) -->
+  <div class="intro">
+    Assine, apresente o QR/CPF no parceiro e garanta seus descontos. Parceiro valida em tempo real com código de controle.
+  </div>
+
+  <h2 class="sec-titulo">Parceiros e Benefícios</h2>
+  <div id="cards-parceiros"></div>
+
+  <!-- Sem títulos de PROMOÇÕES/BENEFÍCIOS aqui; ficam no rodapé, via botões -->
+
+  <div id="promocoes"></div>
+  <div id="beneficios"></div>
+
+  <footer>
+    <span class="claim">Tecnologia com ConsciêncIA gera resultado.</span>
+
+    <div class="footer-buttons">
+  <button onclick="abreBeneficios()">🧠 Benefícios</button>
+  <button onclick="abrePromocoes()">🔥 Promoções</button>
+  <button onclick="abreDepo()">💬 Depoimentos</button>
+  <button onclick="abreFAQ()">❓ Dúvidas Frequentes</button>
+  </div>
+
+    <div id="depoimentos"></div>
+    <div id="faq"></div>
+
+    <div class="mini" style="margin-top:10px">
+      PROMETHEUS EROPRO Soluções Inteligentes © 2025 • CNPJ 58.584.332/0001-40
+    </div>
+    <div class="mini">
+      <a href="mailto:cartao.aproveitai@gmail.com">cartao.aproveitai@gmail.com</a> ·
+      <a href="https://wa.me/5528999692303" target="_blank">(28) 99969‑2303</a> ·
+      <a href="https://instagram.com/cartao.aproveitai" target="_blank" rel="noopener">@cartao.aproveitai</a>
+    </div>
+    <div class="mini" style="margin-top:6px">
+      <a href="privacidade.html">Privacidade</a> ·
+      <a href="termos.html" style="color:#7aa3ff">Termos</a> ·
+      <a href="excluir.html" style="color:#f5d742">Excluir meus dados</a>
+    </div>
+  </footer>
+
+<script>
+const parseDate = (s) => {
+  if (!s) return null;
+  const [d, m, y] = (s.includes('/') ? s.split('/') : s.split('-')).map(x => parseInt(x));
+  return isNaN(y) ? null : new Date(y, m - 1, d);
+};
+
+  // ====== CONFIG ======
+  const API = "https://script.google.com/macros/s/AKfycbyHvvQa508n9zm4CxYT12ykI7SyELA4KFB-hHt-SpFaTPTFOBbPh39EV7FyvXULPcao/exec";
+  const PARTNER_CODE  = "";   // opcional
+  const PARTNER_TOKEN = "";   // opcional
+
+  // Link "Área do Parceiro" -> seu parceiro.html
+  (function wireParceiro(){
+    const url = `parceiro.html?api=${encodeURIComponent(API)}&partner=${encodeURIComponent(PARTNER_CODE)}&token=${encodeURIComponent(PARTNER_TOKEN)}`;
+    const a = document.getElementById("linkParceiro");
+    if (a) a.href = url;
+  })();
+
+  // ====== HELPERS ======
+  async function j(action){
+    const r = await fetch(`${API}?action=${action}&_=${Date.now()}`, { cache: "no-store" });
+    if(!r.ok) throw new Error("Falha em "+action);
+    return r.json();
+  }
+  function toggleShow(id){
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  const norm  = v => (v||'').toString().trim();
+  const isYes = v => /^(s|sim|y|yes|ativo|1)$/i.test(String(v||'').trim());
+
+  // Contato: WhatsApp > Instagram > E‑mail > Telefone
+  function linkContato(p){
+    const whats = (p.whatsapp||p.contato||'').toString().replace(/\D/g,'');
+    if (whats) return `<a href="https://wa.me/55${whats}" target="_blank">WhatsApp</a>`;
+    if (p.instagram){
+      const handle = String(p.instagram).replace(/^@/,'');
+      return `<a href="https://instagram.com/${handle}" target="_blank">Instagram</a>`;
+    }
+    if (p.email)   return `<a href="mailto:${p.email}">E‑mail</a>`;
+    if (p.contato) return `<a href="tel:${String(p.contato).replace(/\D/g,'')}">Contato</a>`;
+    return '';
+  }
+
+  // ====== PROMOÇÕES EM DESTAQUE (topo) ======
+  async function promoTopo(){
+    try{
+      const promos = await j('promocoes');
+      const destaque = promos.filter(p => isYes(p.destaque)).slice(0,2);
+      const html = destaque.map(p => `
+        <div style="background:#fff8e1;border:1px solid #ffe08a;color:#6b4f00;border-radius:14px;padding:10px 14px;margin:10px auto;max-width:900px">
+          <b>🔥 ${norm(p.titulo)}</b>
+          ${p.parceiro ? ` — <i>${norm(p.parceiro)}</i>` : ''}
+          ${p.descricao ? ` — ${norm(p.descricao)}` : ''}
+          ${p.validade ? `<small style="margin-left:8px;opacity:.8">Val: ${norm(p.validade)}</small>` : ''}
+        </div>
+      `).join('');
+      const box = document.getElementById('promo-topo');
+      if (box) box.innerHTML = html || '';
+    }catch(e){ console.error('promoTopo', e); }
+  }
+
+  // ====== CARDS DE PARCEIROS ======
+  async function carregarParceiros(){
+    try{
+      const lista = await j('parceiros');
+      const html = lista
+        .filter(p => isYes(p.ativo))
+        .map(p=>`
+          <div class="card">
+            <img src="${p.logoURL||'logo-aproveitai.png'}" style="max-height:64px;object-fit:contain;margin:6px auto"/>
+            <h2>${norm(p.nomeFantasia||p.nome||'Parceiro')}</h2>
+            <div class="resumo">${norm(p.ramo||'')} • ${norm(p.cidade||'')}</div>
+            <div style="font-size:.95rem;margin-top:4px">${norm(p.tipoDesconto||'')}</div>
+            ${linkContato(p)}
+          </div>
+        `).join('');
+      document.getElementById('cards-parceiros').innerHTML = html || '<div class="bloco">Sem parceiros ativos.</div>';
+    }catch(e){
+      console.error(e);
+      document.getElementById('cards-parceiros').innerHTML = '<div class="bloco">Erro ao carregar parceiros.</div>';
+    }
+  }
+
+  // ====== SEÇÕES DO RODAPÉ (lazy) ======
+  const loaded = {promos:false, bens:false, depo:false, faq:false};
+
+  async function abrePromocoes(){
+    const box = document.getElementById('promocoes');
+    if(!loaded.promos){
+      const lista = await j('promocoes');
+      box.innerHTML = lista
+        .filter(p => {
+  const fim = parseDate(p.validade);
+  return isYes(p.ativo) && (!fim || fim >= new Date());
+})
+        .map(p=>`<div class="bloco"><h3>🔥 ${norm(p.titulo)} ${p.parceiro?`• <small>${norm(p.parceiro)}</small>`:''}</h3><p>${norm(p.descricao)}</p><small>${norm(p.validade)}</small></div>`)
+        .join('');
+      loaded.promos = true;
+    }
+    toggleShow('promocoes');
+  }
+
+  // **BENEFÍCIOS GERAIS** (só os que NÃO têm cpf nem idPublico)
+  async function abreBeneficios(){
+    const box = document.getElementById('beneficios');
+    if(!loaded.bens){
+      const lista = await j('beneficios');
+      box.innerHTML = lista
+        .filter(b => {
+  const fim = parseDate(b.dataFim);
+  return isYes(b.ativo) && (!fim || fim >= new Date()) &&
+         !String(b.cpf||'').trim() && !String(b.idPublico||'').trim();
+})
+        .map(b => `<div class="bloco"><h3>${norm(b.titulo)}</h3><p>${norm(b.descricao)}</p></div>`)
+        .join('');
+      loaded.bens = true;
+    }
+    toggleShow('beneficios');
+  }
+
+  async function abreDepo(){
+    const box = document.getElementById('depoimentos');
+    if(!loaded.depo){
+      const lista = await j('depoimentos');
+      box.innerHTML = lista
+        .filter(d => isYes(d.ativo) || d.ativo===undefined)
+        .map(d=>`<div class="bloco"><p>"${norm(d.texto)}"</p><small>${norm(d.autor)}</small></div>`)
+        .join('');
+      loaded.depo = true;
+    }
+    toggleShow('depoimentos');
+  }
+
+  async function abreFAQ(){
+    const box = document.getElementById('faq');
+    if(!loaded.faq){
+      const lista = await j('faq');
+      box.innerHTML = lista
+        .map(f=>`<details><summary>${norm(f.pergunta)}</summary><p>${norm(f.resposta)}</p></details>`)
+        .join('');
+      loaded.faq = true;
+    }
+    toggleShow('faq');
+  }
+
+  // ====== BOOT ======
+  (async function init(){
+    await Promise.all([promoTopo(), carregarParceiros()]);
+  })();
+</script>
+<!-- Aviso de Cookies -->
+<!-- Banner de Cookies -->
+<div id="cookie-banner" style="
+    position:fixed;bottom:0;left:0;width:100%;
+    background:#232323;color:#fff;padding:12px;text-align:center;
+    font-size:14px;z-index:9999;display:none">
+  Usamos cookies para melhorar sua experiência. Ao continuar navegando, você concorda com nossa
+  <a href="privacidade.html" style="color:#3ee770;text-decoration:underline">Política de Privacidade</a>.
+  <button id="aceitar-cookies" style="
+      background:#3ee770;color:#000;font-weight:bold;
+      padding:6px 12px;border:none;border-radius:6px;margin-left:8px;cursor:pointer">
+    Aceitar
+  </button>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    if(!localStorage.getItem("cookiesAceitos")){
+      document.getElementById("cookie-banner").style.display = "block";
+    }
+    document.getElementById("aceitar-cookies").addEventListener("click", function(){
+      localStorage.setItem("cookiesAceitos", "true");
+      document.getElementById("cookie-banner").style.display = "none";
+    });
+  });
+</script>
+<script>
+  function abrirCarteira() {
+    const valor = document.getElementById("inputId").value.trim();
+    if (!valor) {
+      alert("Digite um CPF ou ID Público");
+      return;
+    }
+
+    if (/^\d{11}$/.test(valor)) {
+      // Se for só números com 11 dígitos, é CPF
+      window.location.href = "cliente.html?cpf=" + valor;
+    } else {
+      // Caso contrário, trata como ID Público
+      window.location.href = "cliente.html?idPublico=" + encodeURIComponent(valor);
+    }
+  }
+</script>
+
+</body>
+</html>
