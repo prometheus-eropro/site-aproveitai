@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a7f2e">
+
   <meta charset="UTF-8" />
   <title>Cartão AproveitAI • PROMETHEUS EROPRO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -147,7 +150,7 @@ const parseDate = (s) => {
 };
 
   // ====== CONFIG ======
-  const API = "https://script.google.com/macros/s/AKfycbyHvvQa508n9zm4CxYT12ykI7SyELA4KFB-hHt-SpFaTPTFOBbPh39EV7FyvXULPcao/exec";
+  const API = "https://script.google.com/macros/s/AKfycbxCBCdv6LAbTHP--Lhh2BMhM4q8XA7ZFgeUa3RKz1kGlU_L2nhD3iO79MAN6AkatrkH/exec";
   const PARTNER_CODE  = "";   // opcional
   const PARTNER_TOKEN = "";   // opcional
 
@@ -334,6 +337,13 @@ const parseDate = (s) => {
       window.location.href = "cliente.html?idPublico=" + encodeURIComponent(valor);
     }
   }
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log("Service Worker registrado"))
+    .catch(err => console.error("Erro ao registrar SW:", err));
+}
 </script>
 
 </body>

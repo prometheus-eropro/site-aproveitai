@@ -5,8 +5,9 @@ const DATA_CACHE = "data-v3";
 const STATIC_ASSETS = [
   "/", "/index.html", "/cliente.html", "/parceiro.html",
   "/logo-aproveitai.png", "/logo-prometheus.png",
-  "/manifest.webmanifest"
+  "/manifest.webmanifest", "/offline.html"
 ];
+
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

@@ -21,8 +21,8 @@
     input:focus{ outline:none; border-color:#b9ccff; box-shadow:0 0 0 3px #b9ccff55; }
     .hint{ font-size:.85rem; opacity:.8; margin-top:4px; }
     .muted{ font-size:.85rem; opacity:.7; }
-    .actions{ display:flex; gap:10px; margin-top:14px; }
-    .btn{ background:var(--verde); color:#fff; font-weight:800; border:none; cursor:pointer; }
+    .actions{ display:flex; gap:10px; margin-top:14px; flex-wrap: wrap; justify-content:space-between; }
+    .btn{ background:var(--verde); color:#fff; font-weight:800; border:none; cursor:pointer; padding:12px; border-radius:10px; flex:1; margin:4px 0; text-align:center; }
     .btn:hover{ background:var(--verde-esc); }
     .btn.outline{ background:#fff; color:var(--verde); border:2px solid var(--verde); }
     .split{ display:grid; gap:8px; }
@@ -67,7 +67,8 @@
 
       <div class="actions">
         <button id="btnGo" class="btn">Validar</button>
-        <button id="btnCopy" class="btn outline" type="button">Copiar link</button>
+        <a href="https://wa.me/5528999692303?text=Olá!%20Sou%20parceiro%20AproveitAI%20e%20tenho%20um%20feedback." class="btn outline" target="_blank">Feedback</a>
+        <button onclick="toggleConsultas();carregarConsultas();" class="btn outline">Consultas</button>
       </div>
 
       <div id="msg" class="hint" style="min-height:22px; margin-top:8px;"></div>
@@ -75,92 +76,78 @@
     </div>
   </div>
 
-<script>
-  // Pega a API da querystring ou usa padrão
-  const qs  = new URLSearchParams(location.search);
-  const API = qs.get('api') || "https://script.google.com/macros/s/AKfycbyHvvQa508n9zm4CxYT12ykI7SyELA4KFB-hHt-SpFaTPTFOBbPh39EV7FyvXULPcao/exec";
+  <div class="card" id="blocoConsultas" style="display:none; margin-top:20px;">
+    <h2 style="font-size:1.1rem; color:#0a4c1a; margin-bottom:10px;">Consultas Recentes</h2>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:#0a7f2e; color:#fff;">
+          <th style="padding:8px;">Data/Hora</th>
+          <th style="padding:8px;">Status</th>
+          <th style="padding:8px;">Código</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaConsultas">
+        <tr><td colspan="3" style="text-align:center; padding:10px;">Nenhuma consulta ainda.</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-  const $ = (id)=>document.getElementById(id);
-  const onlyDigits = (v)=>String(v||'').replace(/\D/g,'');
-
-  function maskCPF(v){
-    const s = onlyDigits(v).slice(0,11);
-    return s.replace(/(\d{3})(\d)/,'$1.$2')
-            .replace(/(\d{3})(\d)/,'$1.$2')
-            .replace(/(\d{3})(\d{1,2})$/,'$1-$2');
-  }
-  function maskCNPJorCode(v){
-    const s = onlyDigits(v);
-    if(s.length<=11) return v; // provavelmente code
-    return s.slice(0,14)
-      .replace(/^(\d{2})(\d)/,'$1.$2')
-      .replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3')
-      .replace(/\.(\d{3})(\d)/,'.$1/$2')
-      .replace(/(\d{4})(\d{1,2})$/,'$1-$2');
-  }
-
-  $('cpf').addEventListener('input', e=> e.target.value = maskCPF(e.target.value));
-  $('partner').addEventListener('input', e=> e.target.value = maskCNPJorCode(e.target.value));
-
-  $('uid').addEventListener('input', e=>{
-    const has = e.target.value.trim().length>0;
-    $('cpf').disabled = has;
-    $('cpf').style.opacity = has ? .6 : 1;
-  });
-
-  // Prefill (?partner=...&token=...)
-  if(qs.get('partner')) $('partner').value = qs.get('partner');
-  if(qs.get('token'))   $('token').value   = qs.get('token');
-
-  // Últimos usados
-  const last = JSON.parse(localStorage.getItem('aproveitai.partner') || '{}');
-  if(!$('partner').value && last.partner) $('partner').value = last.partner;
-  if(!$('token').value   && last.token)   $('token').value   = last.token;
-
-  function buildURL(){
-    const uid     = $('uid').value.trim();
-    const cpf     = onlyDigits($('cpf').value);
-    const partner = $('partner').value.trim();
-    const token   = $('token').value.trim();
-
-    if(!partner || !token){
-      $('msg').textContent = 'Informe o partner code/CNPJ e o token.';
-      return null;
+  <script>
+    function toggleConsultas() {
+      const bloco = document.getElementById("blocoConsultas");
+      bloco.style.display = bloco.style.display === "none" ? "block" : "none";
     }
-    localStorage.setItem('aproveitai.partner', JSON.stringify({partner, token}));
 
-    const q = new URLSearchParams();
-    if(uid){
-      q.set('idPublico', uid);   // nome aceito pelo doGet
-    }else if(cpf){
-      q.set('cpf', cpf);
-    }else{
-      $('msg').textContent = 'Informe o CPF do cliente ou o ID público.';
-      return null;
+    function carregarConsultas() {
+      const parceiro = document.getElementById("partner").value.trim();
+      if (!parceiro) return alert("Digite seu código de parceiro para ver as consultas.");
+
+      const url = `https://script.google.com/macros/s/AKfycbxCBCdv6LAbTHP--Lhh2BMhM4q8XA7ZFgeUa3RKz1kGlU_L2nhD3iO79MAN6AkatrkH/exec?action=logsparceiro&parceiro=${encodeURIComponent(parceiro)}`;
+
+      fetch(url).then(r => r.json()).then(dados => {
+        const tab = document.getElementById("tabelaConsultas");
+        tab.innerHTML = "";
+
+        if (!Array.isArray(dados) || dados.length === 0) {
+          tab.innerHTML = "<tr><td colspan='3' style='padding:10px; text-align:center;'>Nenhuma consulta registrada.</td></tr>";
+        } else {
+          dados.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td style='padding:6px'>${l.dataHora || "-"}</td><td>${l.statusCliente || "-"}</td><td>${l.codigoUnicoERC || "-"}</td>`;
+            tab.appendChild(tr);
+          });
+        }
+      }).catch(err => {
+        console.error("Erro ao carregar consultas:", err);
+        alert("Erro ao carregar as consultas.");
+      });
     }
-    q.set('partner', partner);
-    q.set('token', token);
-    return `${API}?${q.toString()}`;
-  }
 
-  $('btnGo').addEventListener('click', ()=>{
-    const url = buildURL();
-    if(!url) return;
-    $('btnGo').disabled = true; $('btnGo').textContent = 'Validando…'; $('msg').textContent = '';
-    location.href = url;
-    setTimeout(()=>{ $('btnGo').disabled=false; $('btnGo').textContent='Validar'; }, 800);
-  });
+    document.getElementById("btnGo").addEventListener("click", () => {
+      const uid = document.getElementById("uid").value.trim();
+      const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+      const partner = document.getElementById("partner").value.trim();
+      const token = document.getElementById("token").value.trim();
 
-  $('btnCopy').addEventListener('click', async ()=>{
-    const url = buildURL();
-    if(!url) return;
-    await navigator.clipboard.writeText(url);
-    $('msg').textContent = 'Link copiado! Cole no navegador do caixa ou envie ao atendente.';
-  });
+      if (!partner || !token) {
+        document.getElementById("msg").textContent = "Informe o partner code/CNPJ e o token.";
+        return;
+      }
 
-  document.addEventListener('keydown', (e)=>{
-    if(e.key==='Enter'){ e.preventDefault(); $('btnGo').click(); }
-  });
-</script>
+      const q = new URLSearchParams();
+      if (uid) q.set("idPublico", uid);
+      else if (cpf) q.set("cpf", cpf);
+      else {
+        document.getElementById("msg").textContent = "Informe o CPF do cliente ou o ID público.";
+        return;
+      }
+      q.set("partner", partner);
+      q.set("token", token);
+
+      const api = "https://script.google.com/macros/s/AKfycbxCBCdv6LAbTHP--Lhh2BMhM4q8XA7ZFgeUa3RKz1kGlU_L2nhD3iO79MAN6AkatrkH/exec";
+      const url = `${api}?${q.toString()}`;
+      location.href = url;
+    });
+  </script>
 </body>
 </html>
