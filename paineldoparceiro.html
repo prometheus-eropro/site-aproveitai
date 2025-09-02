@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Parceiro • AproveitAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    :root {
+      --verde: #0a7f2e;
+      --azul: #3e6bee;
+      --vermelho: #d10000;
+      --amarelo: #f4b400;
+      --ink: #232630;
+      --bg1: #bdeeff;
+      --bg2: #81d4fa;
+      --card: #fff;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+    }
+    .brandline {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      gap: 12px;
+      align-items: center;
+      justify-items: center;
+      margin: 18px auto 0;
+      max-width: 600px;
+    }
+    .brandline img {
+      height: 100px;
+      object-fit: contain;
+    }
+    .pill {
+      background: #e9fff1;
+      border: 1px solid #b7efc2;
+      color: #0a4c1a;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-weight: 900;
+      font-size: 1.6rem;
+      text-align: center;
+    }
+    .wrap {
+      max-width: 600px;
+      margin: auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 6px 22px #0001;
+      padding: 20px;
+      margin: 18px auto;
+      max-width: 900px;
+    }
+    .btn {
+      background: var(--verde);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #066224;
+    }
+    .muted {
+      opacity: .9;
+      font-weight: 400;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #resultadoValidacao {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .validado { background-color: #e6ffed; border: 2px solid var(--verde); }
+    .invalido { background-color: #ffe6e6; border: 2px solid var(--vermelho); }
+    .action-buttons button {
+      margin: 6px;
+      padding: 12px 18px;
+      font-weight: 700;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .verde { background-color: var(--verde); }
+    .azul { background-color: var(--azul); }
+    .vermelho { background-color: var(--vermelho); }
+    .amarelo { background-color: var(--amarelo); color: #000; }
+
+#resultadoValidacao { margin-top:12px; padding:12px; border-radius:10px; font-weight:600; }
+.validado { background:#e6ffed; border:2px solid #0a7f2e; }
+.invalido { background:#ffe6e6; border:2px solid #d10000; }
+
+  </style>
+</head>
+<body>
+  <div class="brandline">
+    <img src="logo-prometheus.png" alt="Prometheus">
+    <div class="pill">Cartão AproveitAI</div>
+    <img src="logo-aproveitai.png" alt="AproveitAI">
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2 id="boasVindasTitulo">Bem-vindo!</h2>
+      <p class="muted">Obrigado por ser nosso PARCEIRO, você está conectado ao seu painel.</p>
+
+      <div id="formulario">
+        <h3>Validação de Cliente</h3>
+        <p class="muted">Insira o CPF ou ID Público do cliente para validar:</p>
+        <input type="text" id="cpfOuId" placeholder="Digite o CPF ou ID do cliente">
+        <div id="resultadoValidacao"></div>
+      </div>
+
+      <div id="botoes" class="action-buttons">
+        <button class="verde" onclick="consultarCliente()">🔍 Validar Cliente</button>
+        <button class="azul" onclick="irParaConsultas()">📘 Consultas Recentes</button>
+        <a class="btn amarelo" href="criarpromocao.html" target="_blank">🎉 Criar Promoção</a>
+        <button class="vermelho">💡 Enviar Sugestão</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const airtableToken = 'Bearer patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67';
+    const baseId = 'appMQwMQMQz7dLISZ';
+    const TABELA_CLIENTES = 'clientes';
+    const TABELA_LOG = "log"; // ou o nome exato da tabela de log no Airtable
+
+    document.getElementById("boasVindasTitulo").innerText =
+      `Bem-vindo, ${sessionStorage.getItem('nomeParceiro')?.toUpperCase() || 'Parceiro'}!`;
+
+async function buscarCliente(valor) {
+  // Busca por idPublico OU por cpf
+  const filtro = `OR({idPublico}='${valor}', {cpf}='${valor}')`;
+  const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(TABELA_CLIENTES)}?filterByFormula=${encodeURIComponent(filtro)}&maxRecords=1`;
+
+  const resp = await fetch(url, { headers: { Authorization: airtableToken } });
+  const data = await resp.json();
+
+  if (!data.records || data.records.length === 0) throw new Error('NAO_ENCONTRADO');
+  return data.records[0];
+}
+
+async function registrarLog({ statusCliente, nomeCliente, codigoAutorizacao = '---', idPublico = '', log_erros = '' }) {
+  const { nome, cnpj } = getParceiro();
+
+  const body = {
+    fields: {
+      // Se 'dataHora' for campo do tipo Data no Airtable, use ISO:
+      dataHora: new Date().toISOString(),
+      // Se for "texto", pode usar toLocaleString:
+      // dataHora: new Date().toLocaleString('pt-BR'),
+
+      codigoAutorizacao,
+      cnpj,
+      idPublico,
+      nome,                // nome do parceiro (campo 'nome')
+      statusCliente,
+      nomeCliente,
+      log_erros            // só preenche em erro; nos outros fica vazio
+      // diasDevalidacao -> NÃO enviar, é fórmula e o Airtable calcula sozinho
+    },
+  };
+
+  const resp = await fetch(`https://api.airtable.com/v0/${baseId}/${encodeURIComponent(TABELA_LOG)}`, {
+    method: 'POST',
+    headers: { Authorization: airtableToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const txt = await resp.text();
+    console.error('Erro ao logar:', resp.status, txt);
+  }
+}
+async function consultarCliente() {
+  const valor = document.getElementById('cpfOuId').value.trim();
+  const box = document.getElementById('resultadoValidacao');
+
+  if (!valor) {
+    box.className = 'invalido';
+    box.innerHTML = '⚠️ Informe o CPF ou ID.';
+    return;
+  }
+
+  try {
+    const rec = await buscarCliente(valor);
+    const f = rec.fields;
+
+    const nome = f.nome || 'Desconhecido';
+    const idPublico = f.idPublico || valor;
+const status = (f.ativo && f.ativo.toLowerCase() === 'sim') ? 'ativo' : 'inativo';
+    const cpfLimpo = (f.cpf || '').replace(/\D/g, '');
+    const cpfMask = cpfLimpo ? `${cpfLimpo.slice(0,3)}.***.***-${cpfLimpo.slice(-2)}` : '***.***.***-**';
+    const agora = new Date().toLocaleString('pt-BR');
+
+    if (status === 'ativo') {
+      const codigo = gerarCodigoAutorizacao();
+      box.className = 'validado';
+      box.innerHTML = `✅ <strong>${nome}</strong><br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}<br><strong>Código: ${codigo}</strong>`;
+      await registrarLog({ statusCliente: 'ativo', nomeCliente: nome, codigoAutorizacao: codigo, idPublico });
+    } else if (status === 'inativo') {
+      box.className = 'invalido';
+      box.innerHTML = `❌ Cliente <strong>${nome}</strong> está inativo.<br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}`;
+      await registrarLog({ statusCliente: 'inativo', nomeCliente: nome, codigoAutorizacao: '---', idPublico });
+    } else {
+      // Sem campo de status reconhecido
+      box.className = 'invalido';
+      box.innerHTML = '❌ Cliente inválido ou não cadastrado.';
+      await registrarLog({ statusCliente: 'erro', nomeCliente: 'Desconhecido', codigoAutorizacao: '---', idPublico, log_erros: 'Status ausente/indefinido' });
+    }
+  } catch (e) {
+    box.className = 'invalido';
+    box.innerHTML = '❌ Cliente inválido ou não cadastrado.';
+    await registrarLog({ statusCliente: 'erro', nomeCliente: 'Desconhecido', codigoAutorizacao: '---', idPublico: valor, log_erros: 'NAO_ENCONTRADO' });
+  }
+}
+function getParceiro() {
+  return {
+    nome: sessionStorage.getItem('nomeParceiro') || 'Desconhecido',
+    cnpj: sessionStorage.getItem('cnpjParceiro') || ''
+  };
+}
+function gerarCodigoAutorizacao() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let codigo = 'ERO';
+  for (let i = 0; i < 5; i++) {
+    codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return codigo;
+}
+
+function irParaConsultas() {
+  const cnpj = sessionStorage.getItem('cnpjParceiro'); // <-- CORRIGIDO
+  if (cnpj) {
+    window.location.href = "consultas.html";
+  } else {
+    alert('CNPJ não encontrado. Faça login novamente.');
+  }
+}
+</script>
+
+</body>
+</html>

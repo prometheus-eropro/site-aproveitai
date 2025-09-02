@@ -1,0 +1,286 @@
+<!-- 👉 Início do arquivo HTML -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Cliente - Cartão AproveitAI</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #cceeff, #a3d8ff);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      margin: 20px;
+      text-align: center;
+    }
+    header img {
+      height: 60px;
+      margin: 0 10px;
+    }
+    header h1 {
+      background-color: #dfffe8;
+      color: #007a33;
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1.5em;
+    }
+    #painel {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 95%;
+      max-width: 900px;
+      margin-bottom: 30px;
+    }
+    .dados, .beneficios, .promocoes {
+      margin-bottom: 20px;
+    }
+    .dados p, .beneficios li, .promocoes li {
+      font-size: 1em;
+      margin: 5px 0;
+    }
+    .beneficios ul, .promocoes ul {
+      padding-left: 20px;
+    }
+    button {
+      background-color: #007a33;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    h2, h3 {
+      text-align: center;
+    }
+h2 {
+  background-color: #f0f0f0;
+  color: #000;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 30px;
+}
+
+h3 {
+  background-color: #e0f7fa;
+  color: #000;
+  padding: 6px 12px;
+  border-left: 4px solid #007a33;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo-prometheus.png" alt="Logo ConsciencIAs">
+    <h1>Painel do Cliente</h1>
+    <img src="logo-aproveitai.png" alt="Logo AproveitAI">
+  </header>
+
+  <div id="painel">
+    <div class="dados">
+      <h2>Seus dados</h2>
+      <p><strong>Nome:</strong> <span id="nome"></span></p>
+      <p><strong>Cidade:</strong> <span id="cidade"></span></p>
+      <p><strong>Grupo:</strong> <span id="grupo"></span></p>
+      <p><strong>ID Público:</strong> <span id="idPublico"></span></p>
+      <p><strong>CPF:</strong> <span id="cpf"></span></p>
+      <p><strong>Celular:</strong> <span id="celular"></span></p>
+      <p><strong>Cadastro:</strong> <span id="dataCadastro"></span></p>
+    </div>
+
+    <div class="beneficios">
+      <h2>BENEFÍCIOS</h2>
+      <h3>Benefícios gerais</h3>
+      <ul id="beneficiosGerais"></ul>
+      <h3>Benefícios exclusivos para VOCÊ</h3>
+      <ul id="beneficiosExclusivos"></ul>
+    </div>
+
+    <div class="promocoes">
+      <h2>PROMOÇÕES</h2>
+      <h3>Promoções gerais</h3>
+      <ul id="promocoesGerais"></ul>
+      <h3>Promoções exclusivas para VOCÊ</h3>
+      <ul id="promocoesExclusivas"></ul>
+    </div>
+
+    <div style="text-align:center">
+      <button onclick="verCartao()">Ver Cartão</button>
+      <button onclick="enviarWhatsapp()">Solicitar alteração de dados</button>
+    </div>
+  </div>
+
+  <script>
+    const idPublico = new URLSearchParams(window.location.search).get('id');
+    const airtableToken = 'patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67'; // 🔒 Troque pelo seu token real
+    const baseId = 'appMQwMQMQz7dLISZ';     // 📌 Troque pelo ID da base
+    const tabelaClientes = 'clientes';
+    const tabelaBeneficios = 'beneficios';
+    const tabelaPromocoes = 'promocoes';
+
+    function norm(v) {
+      return (v ?? '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+    }
+
+    function isAtivo(v) {
+      const s = norm(v);
+      return ['sim','yes','true','1','ativo'].includes(s);
+    }
+
+    function naoVenceu(fields) {
+      const raw = fields.dataFim ?? fields.datafim;
+      if (!raw) return true;
+      const fim = new Date(raw);
+      if (isNaN(fim)) return true;
+      fim.setHours(23,59,59,999);
+      return fim >= new Date();
+    }
+
+    function formatarData(dataString) {
+      if (!dataString) return 'Indefinida';
+      const data = new Date(dataString);
+      if (isNaN(data)) return 'Indefinida';
+      const dia = String(data.getDate()).padStart(2, '0');
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const ano = data.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function mascararCPF(cpf) {
+      return cpf ? cpf.replace(/(\d{3})\d{3}(\d{3})/, '$1.***.$2') : '';
+    }
+
+    function mascararCelular(celular) {
+      return celular ? celular.replace(/(\d{2})\d{5}(\d{4})/, '($1) *****-$2') : '';
+    }
+
+    async function buscarCliente(id) {
+      const url = `https://api.airtable.com/v0/${baseId}/${tabelaClientes}?filterByFormula=({idPublico}='${id}')`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${airtableToken}` },
+      });
+      const data = await response.json();
+      if (!data.records || data.records.length === 0) throw new Error("Cliente não encontrado");
+      return data.records[0];
+    }
+
+    async function buscarTodos(tabela) {
+      const response = await fetch(`https://api.airtable.com/v0/${baseId}/${tabela}`, {
+        headers: { Authorization: `Bearer ${airtableToken}` },
+      });
+      const data = await response.json();
+      return data.records || [];
+    }
+
+    function filtrarItens(itens, cliente, tipo) {
+      const grupoCliente = norm(cliente.grupo);
+      const idCliente = cliente.idPublico;
+
+      return itens.filter((item) => {
+        const f = item.fields;
+        if (!isAtivo(f.ativo)) return false;
+        if (!naoVenceu(f)) return false;
+
+        const grupoItem = norm(f.grupo || '');
+        const idPubItem = f.idPublico || '';
+
+        const exclusivo = (grupoItem && grupoItem === grupoCliente) || (idPubItem && idPubItem === idCliente);
+        const geral = grupoItem === 'todos' || (!grupoItem && !idPubItem);
+
+        return tipo === 'geral' ? geral : exclusivo;
+      });
+    }
+
+function montarLista(destino, lista, isPromocao = false) {
+  destino.innerHTML = '';
+  lista.forEach(item => {
+    const f = item.fields;
+    const li = document.createElement('li');
+
+    const titulo = f.titulo || '[Sem título]';
+    const parceiro = f.parceiro || '';
+    const descricao = f.descricao || '';
+    const inicioRaw = f.dataInicio || f.datainicio;
+    const inicio = isPromocao ? formatarData(inicioRaw) : null;
+    const fim = formatarData(f.dataFim || f.datafim);
+    const validade = isPromocao ? `(Válido: ${inicio} até ${fim})` : `(Válido até: ${fim})`;
+
+    const whatsapp = (f.whatsapp || '').replace(/\D/g, '');
+    const insta = (f.instagram || f.insta || '').trim();
+
+    let extra = '';
+    if (whatsapp) {
+      extra += `<br>📱 WhatsApp: <a href="https://wa.me/55${whatsapp}" target="_blank">clique aqui</a>`;
+    }
+    if (insta) {
+      const ig = insta.replace('@', '');
+      extra += `<br>📸 Instagram: <a href="https://instagram.com/${ig}" target="_blank">@${ig}</a>`;
+    }
+
+    li.innerHTML = `<strong>${titulo}</strong> - ${parceiro}<br>${descricao}<br>${validade}${extra}`;
+    destino.appendChild(li);
+
+const hr = document.createElement('hr');
+hr.style.border = 'none';
+hr.style.borderTop = '1px dashed #aaa';
+hr.style.margin = '20px 0';
+destino.appendChild(hr);
+
+  });
+}
+    async function montarPainel() {
+      try {
+        const clienteObj = await buscarCliente(idPublico);
+        const cliente = clienteObj.fields;
+
+        document.getElementById('nome').textContent = cliente.nome;
+        document.getElementById('cidade').textContent = cliente.cidade;
+        document.getElementById('grupo').textContent = cliente.grupo;
+        document.getElementById('idPublico').textContent = cliente.idPublico;
+        document.getElementById('dataCadastro').textContent = formatarData(cliente.dataCadastro);
+        document.getElementById('cpf').textContent = mascararCPF(cliente.cpf);
+        document.getElementById('celular').textContent = mascararCelular(cliente.celular);
+
+        const beneficios = await buscarTodos(tabelaBeneficios);
+        const promocoes = await buscarTodos(tabelaPromocoes);
+
+        montarLista(document.getElementById('beneficiosGerais'), filtrarItens(beneficios, cliente, 'geral'));
+        montarLista(document.getElementById('beneficiosExclusivos'), filtrarItens(beneficios, cliente, 'exclusivo'));
+        montarLista(document.getElementById('promocoesGerais'), filtrarItens(promocoes, cliente, 'geral'), true);
+        montarLista(document.getElementById('promocoesExclusivas'), filtrarItens(promocoes, cliente, 'exclusivo'), true);
+      } catch (e) {
+        alert('Erro ao montar painel: ' + e.message);
+      }
+    }
+
+    function verCartao() {
+      const id = new URLSearchParams(window.location.search).get("id");
+      if (!id) return alert("ID não encontrado!");
+      window.location.href = `cartao.html?id=${encodeURIComponent(id)}`;
+    }
+
+    function enviarWhatsapp() {
+      const nome = document.getElementById("nome").textContent;
+      const id = document.getElementById("idPublico").textContent;
+      const texto = `Olá, gostaria de solicitar alteração nos meus dados:\nNome: ${nome}\nID: ${id}`;
+      const numero = "5528999692303";
+      window.open(`https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(texto)}`, '_blank');
+    }
+
+    montarPainel();
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Benefícios | Cartão AproveitAI</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #b3e5fc;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+        }
+        header img {
+            height: 80px;
+        }
+        header h1 {
+            font-size: 28px;
+            color: #1B5E20;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        h2 {
+            text-align: center;
+            color: green;
+        }
+        .card {
+            background-color: #f1fdf1;
+            border-left: 6px solid green;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 6px;
+        }
+        .card h3 {
+            color: #2e7d32;
+            margin-top: 0;
+            text-transform: capitalize;
+        }
+        .card strong {
+            display: inline-block;
+            width: 90px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <img src="logo-prometheus.png" alt="Logo Prometheus">
+    <h1>Cartão AproveitAI</h1>
+    <img src="logo-aproveitai.png" alt="Logo AproveitAI">
+</header>
+
+<div class="container">
+    <h2>Benefícios Ativos</h2>
+    <div id="beneficios"></div>
+</div>
+
+<script>
+    const apiKey = 'patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67';
+    const baseId = 'appMQwMQMQz7dLISZ';
+    const tableName = 'beneficios';
+    const hoje = new Date().toISOString().split('T')[0];
+
+    axios.get(`https://api.airtable.com/v0/${baseId}/${tableName}?view=Grid%20view`, {
+        headers: {
+            Authorization: `Bearer ${apiKey}`
+        }
+    })
+.then(response => {
+  const container = document.getElementById('beneficios');
+  response.data.records.forEach(registro => {
+    const dados = registro.fields;
+    const ativo = (dados.ativo || '').toLowerCase() === 'sim';
+    const grupoVazio = !dados.grupo;
+    const idVazio = !dados.idPublico;
+    const cpfVazio = !dados.cpf;
+    const dataFim = dados.dataFim;
+    const hojeISO = new Date().toISOString().split('T')[0];
+
+    if (!ativo || !grupoVazio || !idVazio || !cpfVazio || (dataFim && dataFim < hojeISO)) return;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    let validade = '';
+    if (dados.dataInicio && dados.dataFim) {
+      validade = `de ${formatarData(dados.dataInicio)} até ${formatarData(dados.dataFim)}`;
+    } else if (dados.dataFim) {
+      validade = `até ${formatarData(dados.dataFim)}`;
+    }
+
+card.innerHTML = `
+  <h3>${dados.titulo || 'Sem título'}</h3>
+  <p><strong>Descrição:</strong> ${dados.descricao || '-'}</p>
+  <p><strong>Parceiro:</strong> ${dados.parceiro || '-'}</p>
+  <p><strong>Validade:</strong> ${validade || '-'}</p>
+  ${dados.whatsapp ? `<p><a href="https://wa.me/${dados.whatsapp}" target="_blank">📲 Falar com parceiro no WhatsApp</a></p>` : ''}
+  ${dados.instagram ? `<p><a href="https://instagram.com/${dados.instagram}" target="_blank">📸 Ver Instagram do parceiro</a></p>` : ''}
+`;
+
+    container.appendChild(card);
+  });
+})
+    .catch(error => {
+        console.error('Erro ao buscar dados:', error);
+    });
+
+    function formatarData(dataStr) {
+        const [ano, mes, dia] = dataStr.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+function formatarZap(zap) {
+  return zap.replace(/\D/g, ''); // remove espaços, +, traços, parênteses
+}
+
+function formatarInsta(insta) {
+  return insta.replace(/^@/, ''); // remove @ se tiver
+}
+
+</script>
+
+</body>
+</html>

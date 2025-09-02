@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Área do Cliente - Cartão AproveitAI</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #cceeff, #a3d8ff);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    header img {
+      height: 80px;
+      margin: 0 20px;
+    }
+
+    header h1 {
+      background-color: #dfffe8;
+      color: #007a33;
+      display: inline-block;
+      padding: 10px 25px;
+      border-radius: 20px;
+      font-size: 1.5em;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+      margin-top: 30px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .box h2 {
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 25px;
+      background-color: #007a33;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .mensagem-erro {
+      color: red;
+      margin-top: 10px;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      header img { height: 60px; }
+      header h1 { font-size: 1.2em; padding: 8px 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logo-prometheus.png" alt="Logo ConsciencIAs">
+    <h1>Cartão AproveitAI</h1>
+    <img src="logo-aproveitai.png" alt="Logo AproveitAI">
+  </header>
+
+  <div class="box">
+    <h2>Consultar seu Dados, Benefícios, Promoções e o Cartão AproveitAI</h2>
+    <p>Digite seu ID Público para acessar:</p>
+    <input type="text" id="Id" placeholder="APV-XXXXX">
+    <button onclick="acessar()">Acessar</button>
+    <p id="erro" class="mensagem-erro">Digite um ID válido.</p>
+  </div>
+
+<script>
+  async function acessar() {
+    const valor = document.getElementById("Id").value.trim()
+      .toUpperCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    const erro = document.getElementById("erro");
+
+    if (!valor) {
+      erro.textContent = 'Digite um ID válido.';
+      erro.style.display = 'block';
+      return;
+    }
+
+    const token = 'patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67';
+    const baseId = 'appMQwMQMQz7dLISZ';
+    const url = `https://api.airtable.com/v0/${baseId}/clientes?filterByFormula=({idPublico}="${valor}")`;
+
+    const resposta = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const dados = await resposta.json();
+    const cliente = dados.records?.[0];
+
+    if (!cliente) {
+      erro.textContent = 'ID não encontrado.';
+      erro.style.display = 'block';
+      return;
+    }
+
+    const status = cliente.fields.ativo?.toString().trim().toLowerCase();
+    if (status !== 'sim') {
+      alert('Erro ao acessar seu cadastro. Entre em contato pelo WhatsApp.');
+      window.open(`https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`, '_blank');
+      return;
+    }
+
+    window.location.href = `painelcliente.html?id=${encodeURIComponent(valor)}`;
+  }
+</script>
+
+</body>
+</html>

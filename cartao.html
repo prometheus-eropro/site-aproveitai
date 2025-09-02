@@ -1,99 +1,181 @@
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+</script>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+
+
+  <meta charset="UTF-8" />
   <title>Cartão AproveitAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
       background: #f0fff4;
-      display: flex;
-      justify-content: center;
-    }
-    .card {
-      width: 90%;
-      max-width: 700px;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      background: white;
-      margin: 20px;
-    }
-    .dados, .qr {
-      flex: 1;
-      padding: 20px;
-    }
-    .qr {
-      border-left: 1px dashed #aaa;
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin: 0;
+      padding: 12px;
     }
+
+    .card {
+      width: 16cm;
+      height: 9cm;
+      background: white;
+      border: 2px dashed #ccc;
+      display: flex;
+      padding: 16px;
+      justify-content: space-between;
+    }
+
+    .left, .right {
+      width: 48%;
+    }
+
+    .left img {
+      height: 40px;
+      margin-bottom: 10px;
+    }
+
+    .info b {
+      display: block;
+      margin-top: 8px;
+    }
+
     .qr img {
-      width: 200px;
-      height: 200px;
+      width: 100%;
+      max-width: 140px;
     }
-    .alerta {
-      font-size: 0.9rem;
-      padding: 10px;
-      margin-top: 10px;
-      border: 1px dashed #888;
-      border-radius: 8px;
-    }
-    .footer {
+
+    .foot {
       text-align: center;
-      font-size: 0.8rem;
-      margin-bottom: 20px;
+      font-size: 12px;
+      margin-top: 12px;
     }
-    @media print {
-      body {
-        zoom: 90%;
-      }
-      .card {
-        page-break-inside: avoid;
-      }
+
+    button {
+      margin: 20px 8px 0;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
     }
+
   </style>
+
+
 </head>
 <body>
-  <div class="card">
-    <div class="dados">
-      <h2>Cartão AproveitAI</h2>
-      <p><strong>Nome:</strong> <span id="nome">-</span></p>
-      <p><strong>ID Público:</strong> <span id="idPublico">-</span></p>
-      <p><strong>Grupo:</strong> <span id="grupo">-</span></p>
-      <p><strong>Cidade:</strong> <span id="cidade">-</span></p>
-      <p><strong>Data de Cadastro:</strong> <span id="cadastro">-</span></p>
-      <div class="alerta">
-        Apresente este cartão <strong>junto com um documento oficial com foto</strong>.<br>
-        O parceiro pode exigir identificação para concluir a validação.
+
+  <div class="card" id="cardArea">
+    <div class="left">
+      <img src="logo-aproveitai.png" alt="Logo" />
+      <h3>Cartão AproveitAI</h3>
+      <div class="info">
+        <b>Nome:</b> <span id="nome">-</span>
+        <b>ID Público:</b> <span id="idPublico">-</span>
+        <b>Grupo:</b> <span id="grupo">-</span>
+        <b>Cidade:</b> <span id="cidade">-</span>
+        <b>Data de Cadastro:</b> <span id="dataCadastro">-</span>
       </div>
     </div>
-    <div class="qr">
+    <div class="right">
       <h3>Validação</h3>
-      <img id="qr" src="" alt="QR Code">
-      <small id="qrMeta"></small>
+      <div class="qr">
+        <img id="qrImg" src="" alt="QR Code" />
+      </div>
+      <p style="font-size: 12px; margin-top: 12px;">
+        Apresente este cartão junto com documento oficial com foto. <br />
+        O parceiro pode exigir identificação.
+      </p>
+      <div class="foot">
+        Suporte: (28) 99969-2303<br />
+        Email: cartao.aproveitai@gmail.com<br />
+        Verifique em: <a href="https://www.aproveitai.com.br" target="_blank">www.aproveitai.com.br</a>
+      </div>
     </div>
   </div>
-  <div class="footer" id="dataGeracao"></div>
+
+  <button id="acaoBtn" style="display: none;"></button>
+
   <script>
-    const dados = JSON.parse(localStorage.getItem("carteiraAproveitai")) || {};
+    const idPublico = new URLSearchParams(window.location.search).get('id');
+    const airtableToken = 'Bearer patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67';
+    const baseId = 'appMQwMQMQz7dLISZ';
+    const tabelaClientes = 'clientes';
 
-    document.getElementById("nome").textContent = dados.nome || "-";
-    document.getElementById("idPublico").textContent = dados.idPublico || "-";
-    document.getElementById("grupo").textContent = dados.grupo || "-";
-    document.getElementById("cidade").textContent = dados.cidade || "-";
-    document.getElementById("cadastro").textContent = dados.dataCadastro || "-";
-
-    if (dados.idPublico) {
-      const qrLink = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(dados.idPublico)}`;
-      document.getElementById("qr").src = qrLink;
-      document.getElementById("qrMeta").textContent = `ID: ${dados.idPublico} - ${new Date().toLocaleString('pt-BR')}`;
+    async function buscarCliente(id) {
+      const url = `https://api.airtable.com/v0/${baseId}/${tabelaClientes}?filterByFormula=${encodeURIComponent(`{idPublico}="${id}"`)}`;
+      const response = await fetch(url, {
+        headers: { Authorization: airtableToken },
+      });
+      const data = await response.json();
+      if (!data.records || data.records.length === 0) throw new Error("Nenhum ID encontrado.");
+      return data.records[0];
     }
-    document.getElementById("dataGeracao").textContent = `Impresso em: ${new Date().toLocaleString('pt-BR')}`;
-  </script>
+
+    function formatarData(dataString) {
+      if (!dataString) return '-';
+      const data = new Date(dataString);
+      return isNaN(data) ? '-' : data.toLocaleDateString('pt-BR');
+    }
+
+    async function montarCartao() {
+      try {
+        const clienteObj = await buscarCliente(idPublico);
+        const cliente = clienteObj.fields;
+        
+        document.title = `Cartão - ${cliente.nome ?? 'AproveitAI'}`;
+        document.getElementById('nome').textContent = cliente.nome ?? '-';
+        document.getElementById('idPublico').textContent = cliente.idPublico ?? '-';
+        document.getElementById('grupo').textContent = cliente.grupo ?? '-';
+        document.getElementById('cidade').textContent = cliente.cidade ?? '-';
+        document.getElementById('dataCadastro').textContent = formatarData(cliente.dataCadastro);
+        document.getElementById('qrImg').src = cliente.qrURL || '';
+
+        const botaoAcao = document.getElementById("acaoBtn");
+
+        if ((cliente.ativo || '').toLowerCase() === 'sim') {
+          botaoAcao.textContent = "Salvar Cartão (PDF)";
+          botaoAcao.onclick = () => window.print();
+          botaoAcao.style.background = "#333";
+        } else {
+          const zapURL = `https://wa.me/5528999692303?text=Olá, gostaria de concluir o cadastro do meu Cartão AproveitAI. Meu ID é ${cliente.idPublico}.`;
+          botaoAcao.textContent = "Concluir cadastro via WhatsApp";
+          botaoAcao.onclick = () => window.open(zapURL, "_blank");
+          botaoAcao.style.background = "#0a7f2e";
+        }
+
+        botaoAcao.style.display = "inline-block";
+
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    montarCartao();
+</script>
+
+<script>
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker registrado com sucesso!'))
+      .catch(e => console.error('Erro ao registrar o Service Worker:', e));
+  }
+</script>
+
 </body>
 </html>

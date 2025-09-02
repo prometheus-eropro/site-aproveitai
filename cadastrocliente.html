@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro Cliente - Cartão AproveitAI</title>
+  <style>
+    :root {
+      --verde: #0a7f2e;
+      --verde-esc: #085e22;
+      --azul: #3e6bee;
+      --ink: #232630;
+      --card: #ffffff;
+      --bg1: #bdeeff;
+      --bg2: #81d4fa;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+    }
+    .brandline {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      gap: 12px;
+      align-items: center;
+      justify-items: center;
+      margin: 18px auto 0;
+      max-width: 600px;
+    }
+    .brandline img {
+      height: 100px;
+      object-fit: contain;
+    }
+    .pill {
+      background: #e9fff1;
+      border: 1px solid #b7efc2;
+      color: #0a4c1a;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-weight: 900;
+      font-size: 1.6rem;
+      text-align: center;
+    }
+    .title {
+      text-align: center;
+      font-weight: 900;
+      color: #0a4c1a;
+      font-size: 1.8rem;
+      margin: 12px 0 20px;
+    }
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 6px 22px #0001;
+      padding: 20px;
+    }
+    .card input {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .card button {
+      background-color: var(--verde);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    footer {
+      background-color: #222;
+      color: white;
+      font-size: 14px;
+      padding: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="brandline">
+    <img src="logo-prometheus.png" alt="Logo Prometheus">
+    <div class="pill">Cartão AproveitAI</div>
+    <img src="logo-aproveitai.png" alt="Logo AproveitAI">
+  </div>
+  <div class="title">Cadastro de Cliente</div>
+
+  <div class="wrap">
+<div class="card" id="formArea">
+  <form id="formCliente">
+        <input type="text" name="nome" placeholder="Nome Completo" required>
+        <input type="text" name="cpf" placeholder="CPF" required>
+        <input type="date" name="dataNascimento" placeholder="Data de Nascimento" required>
+        <input type="text" name="celular" placeholder="Celular" required>
+        <input type="text" name="grupo" placeholder="Grupo">
+        <input type="text" name="cidade" placeholder="Cidade" required>
+        <button type="submit">Cadastrar</button>
+      </form>
+    </div>
+<div id="sucessoArea" style="display: none; max-width: 500px; margin: auto; padding: 20px; background: #d4fdd1; border: 2px solid #0a7f2e; border-radius: 8px;">
+  <p><strong>PARABÉNS, cdastro realizado com sucesso!</strong></p>
+<p>Para concluir e ativar seu cartão, clique no botão abaixo para falar conosco no WhatsApp.</p>
+
+<a id="whatsapp-link" href="#" target="_blank" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #0a7f2e; color: white; border-radius: 6px; text-decoration: none;">
+  Concluir Cadastro via WhatsApp
+</a>
+
+<script>
+  // Dados simulados - no seu caso, esses valores devem ser obtidos da integração Airtable
+  const nome = document.querySelector('[name="nome"]').value;
+const cpf = document.querySelector('[name="cpf"]').value;
+
+  const mensagem = `Olá! Fiz meu cadastro no site e quero ativar meu cartão.%0A%0ANome: ${nome}%0ACPF: ${cpf}`;
+  const numero = "5528999692303"; // Seu número do WhatsApp no formato internacional
+  const url = `https://api.whatsapp.com/send?phone=${numero}&text=${mensagem}`;
+
+  document.getElementById("whatsapp-link").setAttribute("href", url);
+</script>
+  <footer>
+    PROMETHEUS EROPRO Soluções Inteligentes © 2025<br>
+    cartao.aproveitai@gmail.com • (28) 99969 2303 • @cartao.aproveitai
+  </footer>
+
+<script>
+  function somenteDigitos(s){ return (s||"").replace(/\D/g,""); }
+  function gerarIdPublico(){
+    const r = Math.random().toString(36).slice(2,7).toUpperCase();
+    const s = Math.random().toString(36).slice(2,7).toUpperCase();
+    return `APV-${r}-${s}`;
+  }
+
+  document.getElementById('formCliente').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+
+    const BASE_ID = "appMQwMQMQz7dLISZ";
+    const TABLE   = "clientes";
+    const API_KEY = "patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67";
+
+    const idPublico = gerarIdPublico();
+    const cpf = somenteDigitos(form.cpf.value);
+
+    const fields = {
+  "nome": form.nome.value.trim(),
+  "cpf": cpf,
+  "dataNascimento": new Date(form.dataNascimento.value).toISOString().split("T")[0],
+  "celular": somenteDigitos(form.celular.value),
+  "grupo": form.grupo.value.trim(),
+  "cidade": form.cidade.value.trim(),
+  "ativo": "NÃO",
+  "idPublico": idPublico,
+  "qrURL": `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(idPublico)}`,
+  "dataCadastro": new Date().toISOString().split("T")[0]
+};
+
+
+    const urlCheck = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}?maxRecords=1&filterByFormula=${encodeURIComponent(`{CPF}='${cpf}'`)}`;
+    const headers = { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" };
+
+    try {
+      const r0 = await fetch(urlCheck, { headers });
+      if (!r0.ok) throw new Error("Falha ao verificar duplicidade");
+      const j0 = await r0.json();
+      if ((j0.records||[]).length){
+        if (!confirm("CPF já cadastrado. Deseja criar mesmo assim?")) return;
+      }
+
+      const resp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`, {
+        method: 'POST', headers, body: JSON.stringify({ fields })
+      });
+
+      if (!resp.ok){
+        const t = await resp.text();
+        console.error("ERRO criação", resp.status, t);
+        alert("Erro ao cadastrar (veja console).");
+        return;
+      }
+
+      alert('Cadastro realizado com sucesso!');
+      form.reset();
+
+form.reset();
+
+document.getElementById("formArea").style.display = "none";
+document.getElementById("sucessoArea").style.display = "block";
+
+// Enviar zap com nome e cpf reais
+const nomeZap = fields.nome;
+const cpfZap = fields.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+const mensagem = `Olá! Fiz meu cadastro no site e quero ativar meu cartão.%0A%0ANome: ${nomeZap}%0ACPF: ${cpfZap}`;
+const numero = "5528999692303"; // Seu número internacional
+const urlZap = `https://api.whatsapp.com/send?phone=${numero}&text=${mensagem}`;
+
+// Atualiza botão do zap
+document.getElementById("whatsapp-link").setAttribute("href", urlZap);
+    } catch(err){
+      console.error(err);
+     
+    }
+  });
+</script>
+<div id="cookie-banner" style="...">
+  Este site utiliza cookies para melhorar sua experiência.
+  <a href="privacidade.html" style="color:#1a73e8;">Saiba mais</a>
+  <button onclick="aceitarCookies()">Aceitar</button>
+</div>
+
+<script>
+  function aceitarCookies(){
+    document.getElementById("cookie-banner").style.display = "none";
+    localStorage.setItem("cookiesAceitos","sim");
+  }
+  if(localStorage.getItem("cookiesAceitos")==="sim"){
+    document.getElementById("cookie-banner").style.display = "none";
+  }
+
+  const apiKey = 'patXmYwor3EFZGPte.628d2ecfcd251aab41181f5f8f0c601aa042c7195daad22f4178e2c5e0853c67';
+  const baseId = 'appMQwMQMQz7dLISZ';
+  const table = 'parceiros';
+
+  document.getElementById('form-parceiro').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+
+    let site = form.site.value.trim();
+    if (site && !site.startsWith("http://") && !site.startsWith("https://")) {
+      site = "https://" + site;
+    }
+
+    const data = {
+      "nomeFantasia": form.nome.value,
+      "cnpj": form.cnpj.value,
+      "cidade": form.cidade.value,
+      "tipoDesconto": form.ramo.value,
+      "beneficios": form.beneficio.value,
+      "whatshap": form.contato.value,
+      "instagram": form.instagram.value,
+      "site": site,
+      "email": form.email.value,
+      "ativo": "NÃO",
+      "dataCadastro": new Date().toISOString().split("T")[0],
+      "token": gerarTokenUnico()
+    };
+
+    try {
+      const response = await axios.post(
+        `https://api.airtable.com/v0/${baseId}/${table}`,
+        { fields: data },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      alert('Cadastro enviado com sucesso!');
+      document.getElementById("form-parceiro").reset();
+
+    } catch (error) {
+      console.error("Erro detalhado:", error.response?.data || error);
+      alert('Erro ao enviar dados. Verifique a conexão ou os dados preenchidos.');
+    }
+  }); // FECHAMENTO FALTANDO
+
+  function gerarTokenUnico() {
+    const prefixo = "PARC";
+    const numero = Math.floor(1000 + Math.random() * 9000);
+    return `${prefixo}${numero}`;
+  }
+</script>
+
+</body>
+</html>
